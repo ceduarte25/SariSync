@@ -1,14 +1,15 @@
 {
   "expo": {
-    "name": "Site Store",
-    "slug": "bar-scanner",
+    "name": "SariSync",
+    "slug": "sarisync",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "sitestore",
+    "scheme": "sarisync",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.superbros.sarisync"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +19,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.superbros.barscanner"
+      "package": "com.superbros.sarisync"
     },
     "web": {
       "favicon": "./assets/favicon.png",

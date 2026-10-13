@@ -45,6 +45,28 @@ function byName(a: { name: string }, b: { name: string }) {
   return a.name.localeCompare(b.name);
 }
 
+const STORE_KEY = "sarisync-v1";
+const LEGACY_STORE_KEY = "site-store-v1";
+
+const storage = createJSONStorage(() => ({
+  getItem: async (name: string) => {
+    const value = await AsyncStorage.getItem(name);
+    if (value != null) return value;
+
+    if (name === STORE_KEY) {
+      const legacyValue = await AsyncStorage.getItem(LEGACY_STORE_KEY);
+      if (legacyValue != null) {
+        await AsyncStorage.setItem(name, legacyValue);
+        return legacyValue;
+      }
+    }
+
+    return null;
+  },
+  setItem: (name: string, value: string) => AsyncStorage.setItem(name, value),
+  removeItem: (name: string) => AsyncStorage.removeItem(name),
+}));
+
 export const useStore = create<StoreState>()(
   persist(
     (set, get) => ({
@@ -181,8 +203,8 @@ export const useStore = create<StoreState>()(
       toSnapshot: () => createSnapshot(get().workers, get().items, get().sales),
     }),
     {
-      name: "site-store-v1",
-      storage: createJSONStorage(() => AsyncStorage),
+      name: STORE_KEY,
+      storage,
       partialize: ({ workers, items, sales }) => ({ workers, items, sales }),
     },
   ),

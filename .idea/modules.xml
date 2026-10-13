@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/bar-scanner.iml" filepath="$PROJECT_DIR$/.idea/bar-scanner.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/SariSync.iml" filepath="$PROJECT_DIR$/.idea/SariSync.iml" />
     </modules>
   </component>
 </project>

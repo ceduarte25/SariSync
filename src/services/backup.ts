@@ -15,7 +15,7 @@ type SalesExportRange = {
 
 export async function exportSnapshot(snapshot: StoreSnapshot): Promise<void> {
   const json = JSON.stringify(snapshot, null, 2);
-  const file = new File(Paths.cache, `site-store-${fileStamp()}.json`);
+  const file = new File(Paths.cache, `sarisync-${fileStamp()}.json`);
   file.create({ overwrite: true });
   file.write(json);
 
@@ -26,7 +26,7 @@ export async function exportSnapshot(snapshot: StoreSnapshot): Promise<void> {
 
   await Sharing.shareAsync(file.uri, {
     mimeType: "application/json",
-    dialogTitle: "Export site store data",
+    dialogTitle: "Export SariSync data",
     UTI: "public.json",
   });
 }
@@ -55,8 +55,8 @@ export async function exportSalesAsXlsx(
     salesByWorker.set(sale.workerId, sales);
   }
 
-  const worksheetRows: Array<Array<string | number>> = [];
-  const dateCells: Array<[number, number]> = [];
+  const worksheetRows: (string | number)[][] = [];
+  const dateCells: [number, number][] = [];
 
   const workerNames = [...salesByWorker.keys()].sort((a, b) => {
     const left = workerById.get(a) ?? a;
@@ -112,7 +112,7 @@ export async function exportSalesAsXlsx(
   XLSX.utils.book_append_sheet(workbook, worksheet, "Sales");
 
   const xlsxBase64 = XLSX.write(workbook, { bookType: "xlsx", type: "base64" });
-  const file = new File(Paths.cache, `site-store-${kind}-${fileStamp()}.xlsx`);
+  const file = new File(Paths.cache, `sarisync-${kind}-${fileStamp()}.xlsx`);
   file.create({ overwrite: true });
   file.write(xlsxBase64, { encoding: "base64" });
 
