@@ -1,12 +1,22 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
-import { createId } from '@/domain/ids';
-import { parseCatalogLines } from '@/domain/parsers/catalog';
-import { parseWorkerLines } from '@/domain/parsers/workers';
-import { createSnapshot, mergeSnapshots, parseSnapshot } from '@/domain/snapshot';
-import type { CatalogItem, PaymentStatus, Sale, StoreSnapshot, Worker } from '@/domain/types';
+import { createId } from "@/domain/ids";
+import { parseCatalogLines } from "@/domain/parsers/catalog";
+import { parseWorkerLines } from "@/domain/parsers/workers";
+import {
+  createSnapshot,
+  mergeSnapshots,
+  parseSnapshot,
+} from "@/domain/snapshot";
+import type {
+  CatalogItem,
+  PaymentStatus,
+  Sale,
+  StoreSnapshot,
+  Worker,
+} from "@/domain/types";
 
 type StoreState = {
   workers: Worker[];
@@ -24,6 +34,7 @@ type StoreState = {
   }) => void;
   setSaleStatus: (saleId: string, status: PaymentStatus) => void;
   settleWorkerDebts: (workerId: string) => number;
+  settleAllDebts: () => number;
   removeSale: (saleId: string) => void;
   replaceFromJson: (raw: string) => void;
   mergeFromJson: (raw: string) => void;
@@ -42,7 +53,9 @@ export const useStore = create<StoreState>()(
       sales: [],
       addWorkersFromText: (text) => {
         const { names, skipped } = parseWorkerLines(text);
-        const existing = new Set(get().workers.map((worker) => worker.name.toLowerCase()));
+        const existing = new Set(
+          get().workers.map((worker) => worker.name.toLowerCase()),
+        );
         const now = Date.now();
         const next: Worker[] = [];
         let skippedExisting = skipped;
@@ -69,7 +82,9 @@ export const useStore = create<StoreState>()(
       },
       addItemsFromText: (text) => {
         const { items, issues } = parseCatalogLines(text);
-        const existing = new Set(get().items.map((item) => item.name.toLowerCase()));
+        const existing = new Set(
+          get().items.map((item) => item.name.toLowerCase()),
+        );
         const now = Date.now();
         const next: CatalogItem[] = [];
         let extraIssues = issues.length;
@@ -115,16 +130,30 @@ export const useStore = create<StoreState>()(
       },
       setSaleStatus: (saleId, status) => {
         set({
-          sales: get().sales.map((sale) => (sale.id === saleId ? { ...sale, status } : sale)),
+          sales: get().sales.map((sale) =>
+            sale.id === saleId ? { ...sale, status } : sale,
+          ),
         });
       },
       settleWorkerDebts: (workerId) => {
         let settled = 0;
         set({
           sales: get().sales.map((sale) => {
-            if (sale.workerId !== workerId || sale.status !== 'debt') return sale;
+            if (sale.workerId !== workerId || sale.status !== "debt")
+              return sale;
             settled += 1;
-            return { ...sale, status: 'paid' as const };
+            return { ...sale, status: "paid" as const };
+          }),
+        });
+        return settled;
+      },
+      settleAllDebts: () => {
+        let settled = 0;
+        set({
+          sales: get().sales.map((sale) => {
+            if (sale.status !== "debt") return sale;
+            settled += 1;
+            return { ...sale, status: "paid" as const };
           }),
         });
         return settled;
@@ -152,7 +181,7 @@ export const useStore = create<StoreState>()(
       toSnapshot: () => createSnapshot(get().workers, get().items, get().sales),
     }),
     {
-      name: 'site-store-v1',
+      name: "site-store-v1",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: ({ workers, items, sales }) => ({ workers, items, sales }),
     },
