@@ -56,6 +56,7 @@ export async function exportSalesAsXlsx(
   }
 
   const worksheetRows: (string | number)[][] = [];
+  const summaryRows: (string | number)[][] = [];
   const dateCells: [number, number][] = [];
 
   const workerNames = [...salesByWorker.keys()].sort((a, b) => {
@@ -69,6 +70,11 @@ export async function exportSalesAsXlsx(
     const sales = [...(salesByWorker.get(workerId) ?? [])].sort(
       (a, b) => a.createdAt - b.createdAt,
     );
+    const totalPriceCents = sales.reduce(
+      (sum, sale) => sum + sale.quantity * sale.unitSellCents,
+      0,
+    );
+    const totalPrice = totalPriceCents / 100;
 
     worksheetRows.push([workerName, "", "", ""]);
     worksheetRows.push(["Item", "Quantity", "Price", "Date & Time"]);
@@ -84,7 +90,9 @@ export async function exportSalesAsXlsx(
       dateCells.push([rowIndex, 3]);
     }
 
+    worksheetRows.push(["Total price", "", totalPrice, ""]);
     worksheetRows.push(["", "", "", ""]);
+    summaryRows.push([workerName, totalPrice]);
   }
 
   if (worksheetRows.length === 0) {
@@ -98,8 +106,21 @@ export async function exportSalesAsXlsx(
     ]);
   }
 
+  if (summaryRows.length === 0) {
+    summaryRows.push([
+      kind === "debt"
+        ? "No debt sales in the selected range"
+        : "No sales in the selected range",
+      "",
+    ]);
+  }
+
   const workbook = XLSX.utils.book_new();
   const worksheet = XLSX.utils.aoa_to_sheet(worksheetRows);
+  const summaryWorksheet = XLSX.utils.aoa_to_sheet([
+    ["Name", "Total price"],
+    ...summaryRows,
+  ]);
 
   for (const [rowIndex, columnIndex] of dateCells) {
     const cell =
@@ -110,6 +131,7 @@ export async function exportSalesAsXlsx(
   }
 
   XLSX.utils.book_append_sheet(workbook, worksheet, "Sales");
+  XLSX.utils.book_append_sheet(workbook, summaryWorksheet, "Summary");
 
   const xlsxBase64 = XLSX.write(workbook, { bookType: "xlsx", type: "base64" });
   const file = new File(Paths.cache, `sarisync-${kind}-${fileStamp()}.xlsx`);

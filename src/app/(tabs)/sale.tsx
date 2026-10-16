@@ -124,6 +124,9 @@ export default function SaleScreen() {
       "Saved",
       `${count} item${count > 1 ? "s" : ""} for ${worker.name} · ${status === "debt" ? "Debt" : "Paid"} ${formatMoney(total)}`,
     );
+    setWorkerId("");
+    setWorkerQuery("");
+    setItemQuery("");
     setSelectedItems([]);
   };
 
